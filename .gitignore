@@ -1,0 +1,12 @@
+*.o
+
+moc_*.cpp
+
+src/Makefile
+
+test/Makefile
+test/CQColorPaletteTest
+
+bin/
+obj/
+lib/

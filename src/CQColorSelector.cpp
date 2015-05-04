@@ -2,6 +2,7 @@
 #include <QTabWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
+#include <QGridLayout>
 #include <QLabel>
 #include <QSpinBox>
 #include <QLineEdit>
@@ -54,7 +55,7 @@ void paintCheckerboard(QPainter *p, int px, int py, int pw, int ph, int s) {
 
 class CQColorLabel : public QLabel {
  public:
-  CQColorLabel(const char *label) :
+  CQColorLabel(const QString &label) :
    QLabel(label) {
     setObjectName("label");
 
@@ -69,8 +70,8 @@ class CQColorLabel : public QLabel {
 //---
 
 CQColorSelector::
-CQColorSelector(QWidget *parent) :
- QWidget(parent), mode_(ColorMode::RGB)
+CQColorSelector(QWidget *parent, const Config &config) :
+ QWidget(parent), mode_(ColorMode::RGB), config_(config)
 {
   setObjectName("selector");
 
@@ -84,10 +85,17 @@ CQColorSelector(QWidget *parent) :
 
   //---
 
-  tab_->addTab(createRGBTab  (), "RGB"  );
-  tab_->addTab(createHSLTab  (), "HSL"  );
-  tab_->addTab(createCMYKTab (), "CMYK" );
-  tab_->addTab(createWheelTab(), "Wheel");
+  if (config_.rgbTab)
+    tab_->addTab(createRGBTab  (), "RGB"  );
+
+  if (config_.hslTab)
+    tab_->addTab(createHSLTab  (), "HSL"  );
+
+  if (config_.cmykTab)
+    tab_->addTab(createCMYKTab (), "CMYK" );
+
+  if (config_.wheelTab)
+    tab_->addTab(createWheelTab(), "Wheel");
 
   //---
 
@@ -95,17 +103,26 @@ CQColorSelector(QWidget *parent) :
 
   //---
 
-  QHBoxLayout *llayout = new QHBoxLayout;
+  if (config_.colorButton || config_.colorEdit) {
+    QHBoxLayout *llayout = new QHBoxLayout;
 
-  colorButton_ = new CQColorButton(this, c_);
-  valueEdit_   = new CQColorEdit(this, c_);
+    if (config_.colorButton) {
+      colorButton_ = new CQColorButton(this, c_);
 
-  llayout->addWidget(colorButton_);
-  llayout->addStretch();
-  llayout->addWidget(new QLabel("RGBA"));
-  llayout->addWidget(valueEdit_);
+      llayout->addWidget(colorButton_);
+    }
 
-  layout->addLayout(llayout);
+    llayout->addStretch();
+
+    if (config_.colorEdit) {
+      colorEdit_ = new CQColorEdit(this, c_);
+
+      llayout->addWidget(new QLabel("RGBA"));
+      llayout->addWidget(colorEdit_);
+    }
+
+    layout->addLayout(llayout);
+  }
 
   //---
 
@@ -115,7 +132,9 @@ CQColorSelector(QWidget *parent) :
 
   connect(tab_, SIGNAL(currentChanged(int)), this, SLOT(tabChanged(int)));
 
-  connect(valueEdit_, SIGNAL(colorChanged(const QColor &)), this, SLOT(setColor(const QColor &)));
+  if (colorEdit_)
+    connect(colorEdit_, SIGNAL(colorChanged(const QColor &)),
+            this, SLOT(setColor(const QColor &)));
 }
 
 QWidget *
@@ -128,30 +147,29 @@ createRGBTab()
   QVBoxLayout *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
-  QHBoxLayout *rlayout = new QHBoxLayout; rlayout->setSpacing(2);
-  QHBoxLayout *glayout = new QHBoxLayout; glayout->setSpacing(2);
-  QHBoxLayout *blayout = new QHBoxLayout; blayout->setSpacing(2);
-  QHBoxLayout *alayout = new QHBoxLayout; alayout->setSpacing(2);
+  //---
 
-  rlayout->addWidget(new CQColorLabel("R"));
-  glayout->addWidget(new CQColorLabel("G"));
-  blayout->addWidget(new CQColorLabel("B"));
-  alayout->addWidget(new CQColorLabel("A"));
+  auto addControl = [&](const QString &label, ColorType colorType,
+                        CQColorGradient* &gradient, CQColorSpin* &spin) {
+    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
-  rlayout->addWidget(rgbw_.rcanvas = new CQColorGradient(this, ColorType::RGB_R));
-  glayout->addWidget(rgbw_.gcanvas = new CQColorGradient(this, ColorType::RGB_G));
-  blayout->addWidget(rgbw_.bcanvas = new CQColorGradient(this, ColorType::RGB_B));
-  alayout->addWidget(rgbw_.acanvas = new CQColorGradient(this, ColorType::ALPHA));
+    clayout->addWidget(new CQColorLabel(label));
 
-  rlayout->addWidget(rgbw_.rspin = new CQColorSpin(this, ColorType::RGB_R));
-  glayout->addWidget(rgbw_.gspin = new CQColorSpin(this, ColorType::RGB_G));
-  blayout->addWidget(rgbw_.bspin = new CQColorSpin(this, ColorType::RGB_B));
-  alayout->addWidget(rgbw_.aspin = new CQColorSpin(this, ColorType::ALPHA));
+    clayout->addWidget(gradient = new CQColorGradient(this, colorType));
+    clayout->addWidget(spin     = new CQColorSpin    (this, colorType));
 
-  layout->addLayout(rlayout);
-  layout->addLayout(glayout);
-  layout->addLayout(blayout);
-  layout->addLayout(alayout);
+    layout->addLayout(clayout);
+  };
+
+  //---
+
+  addControl("R", ColorType::RGB_R, rgbw_.rcanvas, rgbw_.rspin);
+  addControl("G", ColorType::RGB_G, rgbw_.gcanvas, rgbw_.gspin);
+  addControl("B", ColorType::RGB_B, rgbw_.bcanvas, rgbw_.bspin);
+
+  if (config_.alpha)
+    addControl("A", ColorType::ALPHA, rgbw_.acanvas, rgbw_.aspin);
+
   layout->addStretch();
 
   return tab;
@@ -167,30 +185,29 @@ createHSLTab()
   QVBoxLayout *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
-  QHBoxLayout *hlayout = new QHBoxLayout; hlayout->setSpacing(2);
-  QHBoxLayout *slayout = new QHBoxLayout; slayout->setSpacing(2);
-  QHBoxLayout *llayout = new QHBoxLayout; llayout->setSpacing(2);
-  QHBoxLayout *alayout = new QHBoxLayout; alayout->setSpacing(2);
+  //---
 
-  hlayout->addWidget(new CQColorLabel("H"));
-  slayout->addWidget(new CQColorLabel("S"));
-  llayout->addWidget(new CQColorLabel("L"));
-  alayout->addWidget(new CQColorLabel("A"));
+  auto addControl = [&](const QString &label, ColorType colorType,
+                        CQColorGradient* &gradient, CQColorSpin* &spin) {
+    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
-  hlayout->addWidget(hslw_.hcanvas = new CQColorGradient(this, ColorType::HSL_H));
-  slayout->addWidget(hslw_.scanvas = new CQColorGradient(this, ColorType::HSL_S));
-  llayout->addWidget(hslw_.lcanvas = new CQColorGradient(this, ColorType::HSL_L));
-  alayout->addWidget(hslw_.acanvas = new CQColorGradient(this, ColorType::ALPHA));
+    clayout->addWidget(new CQColorLabel(label));
 
-  hlayout->addWidget(hslw_.hspin = new CQColorSpin(this, ColorType::HSL_H));
-  slayout->addWidget(hslw_.sspin = new CQColorSpin(this, ColorType::HSL_S));
-  llayout->addWidget(hslw_.lspin = new CQColorSpin(this, ColorType::HSL_L));
-  alayout->addWidget(hslw_.aspin = new CQColorSpin(this, ColorType::ALPHA));
+    clayout->addWidget(gradient = new CQColorGradient(this, colorType));
+    clayout->addWidget(spin     = new CQColorSpin    (this, colorType));
 
-  layout->addLayout(hlayout);
-  layout->addLayout(slayout);
-  layout->addLayout(llayout);
-  layout->addLayout(alayout);
+    layout->addLayout(clayout);
+  };
+
+  //---
+
+  addControl("H", ColorType::HSL_H, hslw_.hcanvas, hslw_.hspin);
+  addControl("S", ColorType::HSL_S, hslw_.scanvas, hslw_.sspin);
+  addControl("L", ColorType::HSL_L, hslw_.lcanvas, hslw_.lspin);
+
+  if (config_.alpha)
+    addControl("A", ColorType::ALPHA, hslw_.acanvas, hslw_.aspin);
+
   layout->addStretch();
 
   return tab;
@@ -206,35 +223,30 @@ createCMYKTab()
   QVBoxLayout *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
-  QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
-  QHBoxLayout *mlayout = new QHBoxLayout; mlayout->setSpacing(2);
-  QHBoxLayout *ylayout = new QHBoxLayout; ylayout->setSpacing(2);
-  QHBoxLayout *klayout = new QHBoxLayout; klayout->setSpacing(2);
-  QHBoxLayout *alayout = new QHBoxLayout; alayout->setSpacing(2);
+  //---
 
-  clayout->addWidget(new CQColorLabel("C"));
-  mlayout->addWidget(new CQColorLabel("M"));
-  ylayout->addWidget(new CQColorLabel("Y"));
-  klayout->addWidget(new CQColorLabel("K"));
-  alayout->addWidget(new CQColorLabel("A"));
+  auto addControl = [&](const QString &label, ColorType colorType,
+                        CQColorGradient* &gradient, CQColorSpin* &spin) {
+    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
-  clayout->addWidget(cmykw_.ccanvas = new CQColorGradient(this, ColorType::CMYK_C));
-  mlayout->addWidget(cmykw_.mcanvas = new CQColorGradient(this, ColorType::CMYK_M));
-  ylayout->addWidget(cmykw_.ycanvas = new CQColorGradient(this, ColorType::CMYK_Y));
-  klayout->addWidget(cmykw_.kcanvas = new CQColorGradient(this, ColorType::CMYK_K));
-  alayout->addWidget(cmykw_.acanvas = new CQColorGradient(this, ColorType::ALPHA ));
+    clayout->addWidget(new CQColorLabel(label));
 
-  clayout->addWidget(cmykw_.cspin = new CQColorSpin(this, ColorType::CMYK_C));
-  mlayout->addWidget(cmykw_.mspin = new CQColorSpin(this, ColorType::CMYK_M));
-  ylayout->addWidget(cmykw_.yspin = new CQColorSpin(this, ColorType::CMYK_Y));
-  klayout->addWidget(cmykw_.kspin = new CQColorSpin(this, ColorType::CMYK_K));
-  alayout->addWidget(cmykw_.aspin = new CQColorSpin(this, ColorType::ALPHA ));
+    clayout->addWidget(gradient = new CQColorGradient(this, colorType));
+    clayout->addWidget(spin     = new CQColorSpin    (this, colorType));
 
-  layout->addLayout(clayout);
-  layout->addLayout(mlayout);
-  layout->addLayout(ylayout);
-  layout->addLayout(klayout);
-  layout->addLayout(alayout);
+    layout->addLayout(clayout);
+  };
+
+  //---
+
+  addControl("C", ColorType::CMYK_C, cmykw_.ccanvas, cmykw_.cspin);
+  addControl("M", ColorType::CMYK_M, cmykw_.mcanvas, cmykw_.mspin);
+  addControl("Y", ColorType::CMYK_Y, cmykw_.ycanvas, cmykw_.yspin);
+  addControl("K", ColorType::CMYK_K, cmykw_.kcanvas, cmykw_.kspin);
+
+  if (config_.alpha)
+    addControl("A", ColorType::ALPHA, cmykw_.acanvas, cmykw_.aspin);
+
   layout->addStretch();
 
   return tab;
@@ -247,20 +259,23 @@ createWheelTab()
   QWidget *tab = new QWidget;
   tab->setObjectName("wheel");
 
-  QVBoxLayout *layout = new QVBoxLayout(tab);
+  QHBoxLayout *layout = new QHBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
   wheel_.wheel = new CQColorSelectorWheel(this);
 
   layout->addWidget(wheel_.wheel);
 
-  QHBoxLayout *alayout = new QHBoxLayout; alayout->setSpacing(2);
+  if (config_.alpha) {
+    QGridLayout *alayout = new QGridLayout; alayout->setSpacing(2);
 
-  alayout->addWidget(new CQColorLabel("A"));
-  alayout->addWidget(wheel_.acanvas = new CQColorGradient(this, ColorType::ALPHA));
-  alayout->addWidget(wheel_.aspin   = new CQColorSpin (this, ColorType::ALPHA));
+    alayout->addWidget(new CQColorLabel("A"), 0, 0);
+    alayout->addWidget(wheel_.aspin   = new CQColorSpin (this, ColorType::ALPHA), 0, 1);
+    alayout->addWidget(wheel_.acanvas = new CQColorGradient(this, ColorType::ALPHA), 1, 0, 1, 2);
+    alayout->setRowStretch(2, 1);
 
-  layout->addLayout(alayout);
+    layout->addLayout(alayout);
+  }
 
   return tab;
 }
@@ -274,63 +289,89 @@ setColor(const QColor &c)
   //---
 
   if      (mode_ == ColorMode::RGB) {
-    rgbw_.rcanvas->update();
-    rgbw_.gcanvas->update();
-    rgbw_.bcanvas->update();
-    rgbw_.acanvas->update();
+    if (rgbw_.rcanvas) {
+      rgbw_.rcanvas->update();
+      rgbw_.gcanvas->update();
+      rgbw_.bcanvas->update();
 
-    rgbw_.rspin->setValue(c_.red  ());
-    rgbw_.gspin->setValue(c_.green());
-    rgbw_.bspin->setValue(c_.blue ());
-    rgbw_.aspin->setValue(c_.alpha());
+      rgbw_.rspin->setValue(c_.red  ());
+      rgbw_.gspin->setValue(c_.green());
+      rgbw_.bspin->setValue(c_.blue ());
+
+      if (rgbw_.acanvas) {
+        rgbw_.acanvas->update();
+
+        rgbw_.aspin->setValue(c_.alpha());
+      }
+    }
   }
   else if (mode_ == ColorMode::HSL) {
-    double h, s, l, a;
+    if (hslw_.hcanvas) {
+      double h, s, l, a;
 
-    c_.getHslF(&h, &s, &l, &a);
+      c_.getHslF(&h, &s, &l, &a);
 
-    hslw_.hcanvas->update();
-    hslw_.scanvas->update();
-    hslw_.lcanvas->update();
-    hslw_.acanvas->update();
+      hslw_.hcanvas->update();
+      hslw_.scanvas->update();
+      hslw_.lcanvas->update();
 
-    hslw_.hspin->setValue(imap(h, 0, 1, 0, 255));
-    hslw_.sspin->setValue(imap(s, 0, 1, 0, 255));
-    hslw_.lspin->setValue(imap(l, 0, 1, 0, 255));
-    hslw_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      hslw_.hspin->setValue(imap(h, 0, 1, 0, 255));
+      hslw_.sspin->setValue(imap(s, 0, 1, 0, 255));
+      hslw_.lspin->setValue(imap(l, 0, 1, 0, 255));
+
+      if (hslw_.acanvas) {
+        hslw_.acanvas->update();
+
+        hslw_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      }
+    }
   }
   else if (mode_ == ColorMode::CMYK) {
-    double c, m, y, k, a;
+    if (cmykw_.ccanvas) {
+      double c, m, y, k, a;
 
-    c_.getCmykF(&c, &m, &y, &k, &a);
+      c_.getCmykF(&c, &m, &y, &k, &a);
 
-    cmykw_.ccanvas->update();
-    cmykw_.mcanvas->update();
-    cmykw_.ycanvas->update();
-    cmykw_.kcanvas->update();
-    cmykw_.acanvas->update();
+      cmykw_.ccanvas->update();
+      cmykw_.mcanvas->update();
+      cmykw_.ycanvas->update();
+      cmykw_.kcanvas->update();
 
-    cmykw_.cspin->setValue(imap(c, 0, 1, 0, 255));
-    cmykw_.mspin->setValue(imap(m, 0, 1, 0, 255));
-    cmykw_.yspin->setValue(imap(y, 0, 1, 0, 255));
-    cmykw_.kspin->setValue(imap(k, 0, 1, 0, 255));
-    cmykw_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      cmykw_.cspin->setValue(imap(c, 0, 1, 0, 255));
+      cmykw_.mspin->setValue(imap(m, 0, 1, 0, 255));
+      cmykw_.yspin->setValue(imap(y, 0, 1, 0, 255));
+      cmykw_.kspin->setValue(imap(k, 0, 1, 0, 255));
+
+      if (cmykw_.acanvas) {
+        cmykw_.acanvas->update();
+
+        cmykw_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      }
+    }
   }
   else if (mode_ == ColorMode::WHEEL) {
-    double h, s, l, a;
+    if (wheel_.wheel) {
+      double h, s, l, a;
 
-    c_.getHslF(&h, &s, &l, &a);
+      c_.getHslF(&h, &s, &l, &a);
 
-    wheel_.wheel  ->update();
-    wheel_.acanvas->update();
+      wheel_.wheel->update();
 
-    wheel_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      if (wheel_.acanvas) {
+        wheel_.acanvas->update();
+
+        wheel_.aspin->setValue(imap(a, 0, 1, 0, 255));
+      }
+    }
   }
 
   //---
 
-  colorButton_->setColor(c_);
-  valueEdit_  ->setColor(c_);
+  if (colorButton_)
+    colorButton_->setColor(c_);
+
+  if (colorEdit_)
+    colorEdit_->setColor(c_);
 
   //---
 
@@ -416,10 +457,10 @@ void
 CQColorSelector::
 tabChanged(int i)
 {
-  if      (i == 0) mode_ = ColorMode::RGB;
-  else if (i == 1) mode_ = ColorMode::HSL;
-  else if (i == 2) mode_ = ColorMode::CMYK;
-  else if (i == 3) mode_ = ColorMode::WHEEL;
+  if      (tab_->tabText(i) == "RGB"  ) mode_ = ColorMode::RGB;
+  else if (tab_->tabText(i) == "HSL"  ) mode_ = ColorMode::HSL;
+  else if (tab_->tabText(i) == "CMYK" ) mode_ = ColorMode::CMYK;
+  else if (tab_->tabText(i) == "Wheel") mode_ = ColorMode::WHEEL;
 
   setColor(c_);
 }
@@ -428,7 +469,8 @@ QSize
 CQColorSelector::
 sizeHint() const
 {
-  return QSize(250, 200);
+  return tab_->sizeHint();
+  //return QSize(250, 200);
 }
 
 //------
@@ -496,6 +538,10 @@ CQColorGradient(CQColorSelector *stroke, ColorType type) :
  stroke_(stroke), type_(type)
 {
   setObjectName("gradient");
+
+  QFontMetrics fm(font());
+
+  setFixedHeight(fm.height() + 4);
 }
 
 void

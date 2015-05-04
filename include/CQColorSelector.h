@@ -42,7 +42,20 @@ class CQColorSelector : public QWidget {
   };
 
  public:
-  CQColorSelector(QWidget *parent=0);
+  struct Config {
+    Config() { }
+
+    bool rgbTab      { true };
+    bool hslTab      { true };
+    bool cmykTab     { false };
+    bool wheelTab    { true };
+    bool alpha       { true };
+    bool colorButton { true };
+    bool colorEdit   { true };
+  };
+
+ public:
+  CQColorSelector(QWidget *parent=0, const Config &config=Config());
 
   const QColor &color() const { return c_; }
 
@@ -67,61 +80,62 @@ class CQColorSelector : public QWidget {
 
  private:
   struct RGBWidgets {
-    CQColorGradient *rcanvas;
-    CQColorGradient *gcanvas;
-    CQColorGradient *bcanvas;
-    CQColorGradient *acanvas;
+    CQColorGradient *rcanvas { 0 };
+    CQColorGradient *gcanvas { 0 };
+    CQColorGradient *bcanvas { 0 };
+    CQColorGradient *acanvas { 0 };
 
-    CQColorSpin *rspin;
-    CQColorSpin *gspin;
-    CQColorSpin *bspin;
-    CQColorSpin *aspin;
+    CQColorSpin *rspin { 0 };
+    CQColorSpin *gspin { 0 };
+    CQColorSpin *bspin { 0 };
+    CQColorSpin *aspin { 0 };
   };
 
   struct HSLWidgets {
-    CQColorGradient *hcanvas;
-    CQColorGradient *scanvas;
-    CQColorGradient *lcanvas;
-    CQColorGradient *acanvas;
+    CQColorGradient *hcanvas { 0 };
+    CQColorGradient *scanvas { 0 };
+    CQColorGradient *lcanvas { 0 };
+    CQColorGradient *acanvas { 0 };
 
-    CQColorSpin *hspin;
-    CQColorSpin *sspin;
-    CQColorSpin *lspin;
-    CQColorSpin *aspin;
+    CQColorSpin *hspin { 0 };
+    CQColorSpin *sspin { 0 };
+    CQColorSpin *lspin { 0 };
+    CQColorSpin *aspin { 0 };
   };
 
   struct CMYKWidgets {
-    CQColorGradient *ccanvas;
-    CQColorGradient *mcanvas;
-    CQColorGradient *ycanvas;
-    CQColorGradient *kcanvas;
-    CQColorGradient *acanvas;
+    CQColorGradient *ccanvas { 0 };
+    CQColorGradient *mcanvas { 0 };
+    CQColorGradient *ycanvas { 0 };
+    CQColorGradient *kcanvas { 0 };
+    CQColorGradient *acanvas { 0 };
 
-    CQColorSpin *cspin;
-    CQColorSpin *mspin;
-    CQColorSpin *yspin;
-    CQColorSpin *kspin;
-    CQColorSpin *aspin;
+    CQColorSpin *cspin { 0 };
+    CQColorSpin *mspin { 0 };
+    CQColorSpin *yspin { 0 };
+    CQColorSpin *kspin { 0 };
+    CQColorSpin *aspin { 0 };
   };
 
   struct WheelWidgets {
-    CQColorSelectorWheel *wheel;
-    CQColorGradient      *acanvas;
-    CQColorSpin          *aspin;
+    CQColorSelectorWheel *wheel   { 0 };
+    CQColorGradient      *acanvas { 0 };
+    CQColorSpin          *aspin   { 0 };
   };
 
   QColor    c_;
   ColorMode mode_;
+  Config    config_;
 
-  QTabWidget *tab_;
+  QTabWidget *tab_ { 0 };
 
   RGBWidgets   rgbw_;
   HSLWidgets   hslw_;
   CMYKWidgets  cmykw_;
   WheelWidgets wheel_;
 
-  CQColorButton *colorButton_;
-  CQColorEdit   *valueEdit_;
+  CQColorButton *colorButton_ { 0 };
+  CQColorEdit   *colorEdit_   { 0 };
 };
 
 //-----

@@ -482,7 +482,7 @@ void drawIndicatorUp(QPainter *p, int x, int y) {
   int x1 = x - 4;
   int x2 = x + 4;
   int y1 = y;
-  int y2 = y - 4;;
+  int y2 = y - 4;
 
   QPainterPath path;
 
@@ -504,7 +504,7 @@ void drawIndicatorDown(QPainter *p, int x, int y) {
   int x1 = x - 4;
   int x2 = x + 4;
   int y1 = y;
-  int y2 = y + 4;;
+  int y2 = y + 4;
 
   QPainterPath path;
 

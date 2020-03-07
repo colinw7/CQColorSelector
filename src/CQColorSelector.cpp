@@ -9,6 +9,7 @@
 #include <QPainter>
 #include <QMouseEvent>
 #include <iostream>
+#include <cmath>
 
 namespace {
 

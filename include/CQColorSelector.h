@@ -61,7 +61,7 @@ class CQColorSelector : public QWidget {
 
   void setColorType(ColorType type, int v);
 
-  QSize sizeHint() const;
+  QSize sizeHint() const override;
 
  public slots:
   void setColor(const QColor &c);
@@ -134,8 +134,8 @@ class CQColorSelector : public QWidget {
   CMYKWidgets  cmykw_;
   WheelWidgets wheel_;
 
-  CQColorButton *colorButton_ { 0 };
-  CQColorEdit   *colorEdit_   { 0 };
+  CQColorButton *colorButton_ { nullptr };
+  CQColorEdit   *colorEdit_   { nullptr };
 };
 
 //-----
@@ -147,14 +147,14 @@ class CQColorGradient : public QWidget {
  public:
   CQColorGradient(CQColorSelector *stroke, ColorType type);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  void mousePressEvent  (QMouseEvent *e);
-  void mouseMoveEvent   (QMouseEvent *e);
-  void mouseReleaseEvent(QMouseEvent *e);
+  void mousePressEvent  (QMouseEvent *e) override;
+  void mouseMoveEvent   (QMouseEvent *e) override;
+  void mouseReleaseEvent(QMouseEvent *e) override;
 
  private:
-  CQColorSelector *stroke_;
+  CQColorSelector *stroke_ { nullptr };
   ColorType        type_;
 };
 
@@ -164,11 +164,11 @@ class CQColorSelectorWheel : public QWidget {
  public:
   CQColorSelectorWheel(CQColorSelector *stroke);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
-  void mousePressEvent  (QMouseEvent *e);
-  void mouseMoveEvent   (QMouseEvent *e);
-  void mouseReleaseEvent(QMouseEvent *e);
+  void mousePressEvent  (QMouseEvent *e) override;
+  void mouseMoveEvent   (QMouseEvent *e) override;
+  void mouseReleaseEvent(QMouseEvent *e) override;
 
  private:
   bool updateCircle  (int x, int y, bool updatePos);
@@ -222,10 +222,10 @@ class CQColorButton : public QToolButton {
 
   void setColor(const QColor &c);
 
-  void paintEvent(QPaintEvent *);
+  void paintEvent(QPaintEvent *) override;
 
  private:
-  CQColorSelector *stroke_;
+  CQColorSelector *stroke_ { nullptr };
   QColor           c_;
 };
 
@@ -246,7 +246,7 @@ class CQColorEdit : public QLineEdit {
   void valueChangedSlot();
 
  private:
-  CQColorSelector *stroke_;
+  CQColorSelector *stroke_ { nullptr };
   QColor           c_;
   QString          str_;
 };

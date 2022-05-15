@@ -76,7 +76,7 @@ CQColorSelector(QWidget *parent, const Config &config) :
 {
   setObjectName("selector");
 
-  QVBoxLayout *layout = new QVBoxLayout(this);
+  auto *layout = new QVBoxLayout(this);
   layout->setMargin(0); layout->setSpacing(0);
 
   tab_ = new QTabWidget;
@@ -105,7 +105,7 @@ CQColorSelector(QWidget *parent, const Config &config) :
   //---
 
   if (config_.colorButton || config_.colorEdit) {
-    QHBoxLayout *llayout = new QHBoxLayout;
+    auto *llayout = new QHBoxLayout;
 
     if (config_.colorButton) {
       colorButton_ = new CQColorButton(this, c_);
@@ -142,17 +142,17 @@ QWidget *
 CQColorSelector::
 createRGBTab()
 {
-  QWidget *tab = new QWidget;
+  auto *tab = new QWidget;
   tab->setObjectName("rgb");
 
-  QVBoxLayout *layout = new QVBoxLayout(tab);
+  auto *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
   //---
 
   auto addControl = [&](const QString &label, ColorType colorType,
                         CQColorGradient* &gradient, CQColorSpin* &spin) {
-    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
+    auto *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
     clayout->addWidget(new CQColorLabel(label));
 
@@ -180,17 +180,17 @@ QWidget *
 CQColorSelector::
 createHSLTab()
 {
-  QWidget *tab = new QWidget;
+  auto *tab = new QWidget;
   tab->setObjectName("hsl");
 
-  QVBoxLayout *layout = new QVBoxLayout(tab);
+  auto *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
   //---
 
   auto addControl = [&](const QString &label, ColorType colorType,
                         CQColorGradient* &gradient, CQColorSpin* &spin) {
-    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
+    auto *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
     clayout->addWidget(new CQColorLabel(label));
 
@@ -218,17 +218,17 @@ QWidget *
 CQColorSelector::
 createCMYKTab()
 {
-  QWidget *tab = new QWidget;
+  auto *tab = new QWidget;
   tab->setObjectName("cmyk");
 
-  QVBoxLayout *layout = new QVBoxLayout(tab);
+  auto *layout = new QVBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
   //---
 
   auto addControl = [&](const QString &label, ColorType colorType,
                         CQColorGradient* &gradient, CQColorSpin* &spin) {
-    QHBoxLayout *clayout = new QHBoxLayout; clayout->setSpacing(2);
+    auto *clayout = new QHBoxLayout; clayout->setSpacing(2);
 
     clayout->addWidget(new CQColorLabel(label));
 
@@ -257,10 +257,10 @@ QWidget *
 CQColorSelector::
 createWheelTab()
 {
-  QWidget *tab = new QWidget;
+  auto *tab = new QWidget;
   tab->setObjectName("wheel");
 
-  QHBoxLayout *layout = new QHBoxLayout(tab);
+  auto *layout = new QHBoxLayout(tab);
   layout->setMargin(2); layout->setSpacing(2);
 
   wheel_.wheel = new CQColorSelectorWheel(this);
@@ -268,7 +268,7 @@ createWheelTab()
   layout->addWidget(wheel_.wheel);
 
   if (config_.alpha) {
-    QGridLayout *alayout = new QGridLayout; alayout->setSpacing(2);
+    auto *alayout = new QGridLayout; alayout->setSpacing(2);
 
     alayout->addWidget(new CQColorLabel("A"), 0, 0);
     alayout->addWidget(wheel_.aspin   = new CQColorSpin (this, ColorType::ALPHA), 0, 1);
@@ -387,7 +387,7 @@ setColorType(ColorType type, int v)
 
   double rv = map(v, 0, 255, 0, 1);
 
-  QColor qc = this->color();
+  auto qc = this->color();
 
   if      (type == ColorType::RGB_R) {
     qc.setRed(v);
@@ -578,7 +578,7 @@ paintEvent(QPaintEvent *)
 {
   QPainter p(this);
 
-  QColor qc = stroke_->color();
+  auto qc = stroke_->color();
 
   int pw = width ();
   int ph = height();
@@ -634,7 +634,7 @@ paintEvent(QPaintEvent *)
     qc.getHslF(&h, &s, &l, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromHslF(map(x, 0, pw - 1, 0, 1), 1, 0.5);
+      auto c1 = QColor::fromHslF(map(x, 0, pw - 1, 0, 1), 1, 0.5);
 
       p.setPen(c1);
 
@@ -649,7 +649,7 @@ paintEvent(QPaintEvent *)
     qc.getHslF(&h, &s, &l, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromHslF(h, map(x, 0, pw - 1, 0, 1), l);
+      auto c1 = QColor::fromHslF(h, map(x, 0, pw - 1, 0, 1), l);
 
       p.setPen(c1);
 
@@ -664,7 +664,7 @@ paintEvent(QPaintEvent *)
     qc.getHslF(&h, &s, &l, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromHslF(h, s, map(x, 0, pw - 1, 0, 1));
+      auto c1 = QColor::fromHslF(h, s, map(x, 0, pw - 1, 0, 1));
 
       p.setPen(c1);
 
@@ -679,7 +679,7 @@ paintEvent(QPaintEvent *)
     qc.getCmykF(&c, &m, &y, &k, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromCmykF(map(x, 0, pw - 1, 0, 1), m, y, k);
+      auto c1 = QColor::fromCmykF(map(x, 0, pw - 1, 0, 1), m, y, k);
 
       p.setPen(c1);
 
@@ -694,7 +694,7 @@ paintEvent(QPaintEvent *)
     qc.getCmykF(&c, &m, &y, &k, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromCmykF(c, map(x, 0, pw - 1, 0, 1), y, k);
+      auto c1 = QColor::fromCmykF(c, map(x, 0, pw - 1, 0, 1), y, k);
 
       p.setPen(c1);
 
@@ -709,7 +709,7 @@ paintEvent(QPaintEvent *)
     qc.getCmykF(&c, &m, &y, &k, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromCmykF(c, m, map(x, 0, pw - 1, 0, 1), k);
+      auto c1 = QColor::fromCmykF(c, m, map(x, 0, pw - 1, 0, 1), k);
 
       p.setPen(c1);
 
@@ -724,7 +724,7 @@ paintEvent(QPaintEvent *)
     qc.getCmykF(&c, &m, &y, &k, &a);
 
     for (int x = 0; x < pw; ++x) {
-      QColor c1 = QColor::fromCmykF(c, m, y, map(x, 0, pw - 1, 0, 1));
+      auto c1 = QColor::fromCmykF(c, m, y, map(x, 0, pw - 1, 0, 1));
 
       p.setPen(c1);
 
@@ -744,7 +744,7 @@ paintEvent(QPaintEvent *)
 
     for (int y = 0; y < h1; ++y) {
       for (int x = 0; x < w1; ++x) {
-        QColor c1 = (((x + y) & 1) ? QColor(96,96,96) : QColor(160,160,160));
+        auto c1 = (((x + y) & 1) ? QColor(96,96,96) : QColor(160,160,160));
 
         p.fillRect(QRect(s*x, s*y, s, s), QBrush(c1));
       }
@@ -848,7 +848,7 @@ updateCircle(int x, int y, bool checkInside)
 
   //---
 
-  QColor qc = stroke_->color();
+  auto qc = stroke_->color();
 
   double h, s, l, a;
 
@@ -876,7 +876,7 @@ updateTriangle(int x, int y, bool /*checkInside*/)
 
   //---
 
-  QColor qc = stroke_->color();
+  auto qc = stroke_->color();
 
   double h, s, l, a;
 
@@ -905,7 +905,7 @@ paintEvent(QPaintEvent *)
 
   //---
 
-  QColor qc = stroke_->color();
+  auto qc = stroke_->color();
 
   double h, s, l, a;
 
@@ -1140,7 +1140,7 @@ void
 CQColorEdit::
 valueChangedSlot()
 {
-  QString s = text().simplified();
+  auto s = text().trimmed();
 
   if (s == str_)
     return;

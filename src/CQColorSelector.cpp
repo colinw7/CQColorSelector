@@ -383,7 +383,7 @@ void
 CQColorSelector::
 setColorType(ColorType type, int v)
 {
-  v = clamp(v, 0, 255);
+  v = int(clamp(v, 0, 255));
 
   double rv = map(v, 0, 255, 0, 1);
 
@@ -964,7 +964,7 @@ paintEvent(QPaintEvent *)
 
   p.setPen(toBW(lc));
 
-  p.drawLine(x1, y1, x2, y2);
+  p.drawLine(int(x1), int(y1), int(x2), int(y2));
 
   //---
 

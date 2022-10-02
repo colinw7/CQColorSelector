@@ -7,6 +7,7 @@
 #include <QSpinBox>
 #include <QLineEdit>
 #include <QPainter>
+#include <QPainterPath>
 #include <QMouseEvent>
 #include <iostream>
 #include <cmath>
@@ -36,7 +37,7 @@ inline double clamp(double value, double l, double h) {
 QColor toBW(const QColor &c) {
   int g = qGray(c.red(), c.green(), c.blue());
 
-  return (g < 128 ? QColor(255,255,255) : QColor(0,0,0));
+  return (g < 128 ? QColor(255, 255, 255) : QColor(0, 0, 0));
 }
 
 void paintCheckerboard(QPainter *p, int px, int py, int pw, int ph, int s) {
@@ -45,7 +46,7 @@ void paintCheckerboard(QPainter *p, int px, int py, int pw, int ph, int s) {
 
   for (int y = 0; y < h; ++y) {
     for (int x = 0; x < w; ++x) {
-      QColor c = (((x + y) & 1) ? QColor(96,96,96) : QColor(160,160,160));
+      QColor c = (((x + y) & 1) ? QColor(96, 96, 96) : QColor(160, 160, 160));
 
       p->fillRect(QRect(px + s*x, py + s*y, s, s), QBrush(c));
     }
@@ -62,7 +63,7 @@ class CQColorLabel : public QLabel {
 
     QFontMetrics fm(font());
 
-    setFixedWidth(fm.width("W"));
+    setFixedWidth(fm.horizontalAdvance("W"));
 
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
@@ -493,8 +494,8 @@ void drawIndicatorUp(QPainter *p, int x, int y) {
 
   path.closeSubpath();
 
-  p->setPen(QColor(255,255,255));
-  p->setBrush(QColor(0,0,0));
+  p->setPen(QColor(255, 255, 255));
+  p->setBrush(QColor(0, 0, 0));
 
   p->drawPath(path);
 }
@@ -515,8 +516,8 @@ void drawIndicatorDown(QPainter *p, int x, int y) {
 
   path.closeSubpath();
 
-  p->setPen(QColor(255,255,255));
-  p->setBrush(QColor(0,0,0));
+  p->setPen(QColor(255, 255, 255));
+  p->setBrush(QColor(0, 0, 0));
 
   p->drawPath(path);
 }
@@ -744,7 +745,7 @@ paintEvent(QPaintEvent *)
 
     for (int y = 0; y < h1; ++y) {
       for (int x = 0; x < w1; ++x) {
-        auto c1 = (((x + y) & 1) ? QColor(96,96,96) : QColor(160,160,160));
+        auto c1 = (((x + y) & 1) ? QColor(96, 96, 96) : QColor(160, 160, 160));
 
         p.fillRect(QRect(s*x, s*y, s, s), QBrush(c1));
       }
@@ -970,9 +971,9 @@ paintEvent(QPaintEvent *)
 
   // calc triangle corners
   //
-  // p1 (xt1_, yt1_) is s=1,v=0.5
-  // p2 (xt2_, yt2_) is s=0,v=0
-  // p3 (xt3_, yt3_) is s=0,v=1
+  // p1 (xt1_, yt1_) is s=1, v=0.5
+  // p2 (xt2_, yt2_) is s=0, v=0
+  // p3 (xt3_, yt3_) is s=0, v=1
 
   angleToPoint(ri_, la           , xt1_, yt1_);
   angleToPoint(ri_, la + 2*M_PI/3, xt2_, yt2_);

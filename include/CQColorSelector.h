@@ -55,7 +55,7 @@ class CQColorSelector : public QWidget {
   };
 
  public:
-  CQColorSelector(QWidget *parent=0, const Config &config=Config());
+  CQColorSelector(QWidget *parent=nullptr, const Config &config=Config());
 
   const QColor &color() const { return c_; }
 
